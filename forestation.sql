@@ -20,4 +20,21 @@ select count(*)
 from forestation;
 
 
+-- PARTI. GLOBAL SITUATION
+-- Difference and percentage drop in forestation area from 1990 to 2016
+WITH t1 AS (
+  SELECT *
+  FROM forestation
+  WHERE country_code='WLD' and year in (1990, 2016)
+  ORDER BY year)
+   
+SELECT year,
+  forest_area_sqkm,
+  LEAD(forest_area_sqkm) OVER (order by year) AS lead,
+  LEAD(forest_area_sqkm) OVER (order by year)-forest_area_sqkm AS abs_diff,
+  ROUND((100*(LEAD(forest_area_sqkm) OVER (order by year)-forest_area_sqkm)/forest_area_sqkm)::NUMERIC, 3) AS pct_diff
+FROM t1
+
+
+
 
