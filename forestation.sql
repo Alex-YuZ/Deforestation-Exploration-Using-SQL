@@ -69,3 +69,26 @@ SELECT country_code,
 FROM forestation
 WHERE year=2016 AND country_code='WLD';
 
+-- Find the region with the highest relative forestation in 2016
+SELECT year,
+       region,
+       SUM(forest_area_sqkm) total_forestation,
+       SUM(total_area_sq_km) total_land,
+       ROUND((100*SUM(forest_area_sqkm)/SUM(total_area_sq_km))::NUMERIC,2) forestation_pct
+FROM forestation
+GROUP BY 1,2
+HAVING year=2016
+ORDER BY forestation_pct DESC
+LIMIT 1;
+
+-- Find the region with the lowest relative forestation in 2016
+SELECT year,
+       region,
+       SUM(forest_area_sqkm) total_forestation,
+       SUM(total_area_sq_km) total_land,
+       ROUND((100*SUM(forest_area_sqkm)/SUM(total_area_sq_km))::NUMERIC,2) forestation_pct
+FROM forestation
+GROUP BY 1,2
+HAVING year=2016
+ORDER BY forestation_pct
+LIMIT 1;
