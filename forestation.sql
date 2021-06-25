@@ -246,7 +246,7 @@ FROM tab_join
 WHERE forest_1990 IS NOT NULL AND forest_2016 IS NOT NULL AND country_name!='World'
 ORDER BY pct_change DESC
 
-
+-- B. Largest Concerns
 --Table 3.1 Top 5 Amount Decrease in Forest Area by Country, 1990 & 2016
 WITH tab_1990 AS (
   SELECT country_code,
@@ -334,9 +334,92 @@ SELECT country_name,
        forest_1990, 
        forest_2016, 
        (forest_2016-forest_1990) AS forest_area_change,
-       (100*(pct_2016-pct_1990)/pct_1990) AS pct_change, 
+       ROUND((100*(pct_2016-pct_1990)/pct_1990)::NUMERIC, 2) AS pct_change, 
        land_1990, 
        land_2016
 FROM tab_join
 WHERE forest_1990 IS NOT NULL AND forest_2016 IS NOT NULL AND country_name!='World'
 ORDER BY pct_change
+
+
+--C. Quartiles
+-- Table 3.3 Count of Countries Grouped by Forestation Percent Quartiles, 2016
+WITH tab_quartile AS (
+  SELECT country_name,
+         pct_forestation
+  FROM forestation
+  WHERE year=2016 AND pct_forestation IS NOT NULL
+  ORDER BY 2),
+
+  tab_quartile1 AS (
+    SELECT country_name,
+           pct_forestation,
+           CASE
+             WHEN pct_forestation<=25 THEN '0 - 25%'
+             WHEN pct_forestation<=50 THEN '25% - 50%'
+             WHEN pct_forestation<=75 THEN '50% - 75%'
+             ELSE '75% - 100%'
+           END AS quartiles
+    FROM tab_quartile)
+
+SELECT quartiles, count(country_name) number_of_countries
+FROM tab_quartile1
+GROUP BY 1
+ORDER BY 1
+
+
+-- List all of the countries that were in the 4th quartile (percent forest > 75%) in 2016.
+WITH tab_quartile AS (
+  SELECT country_name,
+  		 region,
+         pct_forestation
+  FROM forestation
+  WHERE year=2016 AND pct_forestation IS NOT NULL
+  ORDER BY 2),
+
+  tab_quartile1 AS (
+    SELECT country_name,
+    	   region,
+           pct_forestation,
+           CASE
+             WHEN pct_forestation<=25 THEN '0 - 25%'
+             WHEN pct_forestation<=50 THEN '25% - 50%'
+             WHEN pct_forestation<=75 THEN '50% - 75%'
+             ELSE '75% - 100%'
+           END AS quartiles
+    FROM tab_quartile)
+
+SELECT country_name, region, ROUND(pct_forestation::NUMERIC, 2) Pct_Designated_as_Forest
+FROM tab_quartile1
+WHERE quartiles='75% - 100%'
+ORDER BY 1
+
+
+
+-- How many countries had a percent forestation higher than the United States in 2016?
+WITH tab_quartile AS (
+  SELECT country_name,
+  		 region,
+         pct_forestation
+  FROM forestation
+  WHERE year=2016 AND pct_forestation IS NOT NULL
+  ORDER BY 2),
+
+  tab_quartile1 AS (
+    SELECT country_name,
+    	   region,
+           pct_forestation,
+           CASE
+             WHEN pct_forestation<=25 THEN '0 - 25%'
+             WHEN pct_forestation<=50 THEN '25% - 50%'
+             WHEN pct_forestation<=75 THEN '50% - 75%'
+             ELSE '75% - 100%'
+           END AS quartiles
+    FROM tab_quartile)
+
+SELECT COUNT(*)
+FROM tab_quartile1
+WHERE pct_forestation>
+(SELECT pct_forestation
+FROM tab_quartile1
+where country_name='United States');
