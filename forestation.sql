@@ -92,3 +92,69 @@ GROUP BY 1,2
 HAVING year=2016
 ORDER BY forestation_pct
 LIMIT 1;
+
+-- Find the world's forestation area percentage in 1990
+SELECT country_code,
+       country_name,
+       year,
+       forest_area_sqkm,
+       total_area_sq_km,
+       ROUND(pct_forestation::NUMERIC, 2) pct_forestation
+FROM forestation
+WHERE year=1990 AND country_code='WLD';
+
+-- Find the region with the highest relative forestation in 1990
+SELECT year,
+       region,
+       SUM(forest_area_sqkm) total_forestation,
+       SUM(total_area_sq_km) total_land,
+       ROUND((100*SUM(forest_area_sqkm)/SUM(total_area_sq_km))::NUMERIC,2) forestation_pct
+FROM forestation
+GROUP BY 1,2
+HAVING year=1990
+ORDER BY forestation_pct DESC
+LIMIT 1;
+
+-- Find the region with the lowest relative forestation in 1990
+SELECT year,
+       region,
+       SUM(forest_area_sqkm) total_forestation,
+       SUM(total_area_sq_km) total_land,
+       ROUND((100*SUM(forest_area_sqkm)/SUM(total_area_sq_km))::NUMERIC,2) forestation_pct
+FROM forestation
+GROUP BY 1,2
+HAVING year=1990
+ORDER BY forestation_pct
+LIMIT 1;
+
+-----Table 2.1: Percent FOrest Area by Region, 1990 & 2016
+DROP VIEW IF EXISTS t1;
+CREATE VIEW t1 AS (
+SELECT year yr,
+       region,
+       SUM(forest_area_sqkm) total_forestation,
+       SUM(total_area_sq_km) total_land,
+       ROUND((100*SUM(forest_area_sqkm)/SUM(total_area_sq_km))::NUMERIC,2) forestation_pct
+FROM forestation
+GROUP BY 1,2
+HAVING year in (1990, 2016)
+order by region, yr);
+
+WITH tab1 AS (
+    SELECT region,
+    forestation_pct
+    FROM t1
+    where yr=1990),
+  
+    tab2 AS (
+      SELECT region,
+      forestation_pct
+      FROM t1
+      where yr=2016)
+
+SELECT tab1.region,
+tab1.forestation_pct AS pct_1990,
+tab2.forestation_pct AS pct_2019
+FROM tab1
+JOIN tab2 ON tab1.region=tab2.region
+    
