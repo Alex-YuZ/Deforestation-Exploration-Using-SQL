@@ -138,7 +138,7 @@ SELECT year yr,
 FROM forestation
 GROUP BY 1,2
 HAVING year in (1990, 2016)
-order by region, yr);
+ORDER BY region, yr);
 
 WITH tab1 AS (
     SELECT region,
@@ -158,3 +158,83 @@ tab2.forestation_pct AS pct_2019
 FROM tab1
 JOIN tab2 ON tab1.region=tab2.region
     
+-- Part III. Country-level Detail
+-- A. Success Stories
+-- Largest change in terms of forest_area
+WITH tab_1990 AS (
+  SELECT country_code,
+         country_name, 
+         forest_area_sqkm, 
+         total_area_sq_km, 
+         pct_forestation
+  FROM forestation
+  WHERE year=1990
+  ORDER BY country_name),
+
+  tab_2016 AS (
+    SELECT country_code, country_name, forest_area_sqkm, total_area_sq_km, pct_forestation
+    FROM forestation
+    WHERE year=2016
+    ORDER BY country_name),
+
+  tab_join AS (
+    SELECT tab_1990.country_name, 
+           tab_1990.forest_area_sqkm forest_1990, 
+           tab_2016.forest_area_sqkm forest_2016, 
+           tab_1990.total_area_sq_km land_1990, 
+           tab_2016.total_area_sq_km land_2016, 
+           tab_1990.pct_forestation pct_1990, 
+           tab_2016.pct_forestation pct_2016
+    FROM tab_1990
+    JOIN tab_2016 ON tab_1990.country_code=tab_2016.country_code)
+    
+SELECT country_name, 
+       forest_1990, 
+       forest_2016, 
+       (forest_2016-forest_1990) AS forest_area_change,
+       (100*(pct_2016-pct_1990)/pct_1990) AS pct_change, 
+       land_1990, 
+       land_2016
+FROM tab_join
+WHERE forest_1990 IS NOT NULL AND forest_2016 IS NOT NULL AND country_name!='World'
+ORDER BY forest_area_change DESC
+
+-- Largest change in terms of forest_area percentage
+WITH tab_1990 AS (
+  SELECT country_code,
+         country_name, 
+         forest_area_sqkm, 
+         total_area_sq_km, 
+         pct_forestation
+  FROM forestation
+  WHERE year=1990
+  ORDER BY country_name),
+
+  tab_2016 AS (
+    SELECT country_code, country_name, forest_area_sqkm, total_area_sq_km, pct_forestation
+    FROM forestation
+    WHERE year=2016
+    ORDER BY country_name),
+
+  tab_join AS (
+    SELECT tab_1990.country_name, 
+           tab_1990.forest_area_sqkm forest_1990, 
+           tab_2016.forest_area_sqkm forest_2016, 
+           tab_1990.total_area_sq_km land_1990, 
+           tab_2016.total_area_sq_km land_2016, 
+           tab_1990.pct_forestation pct_1990, 
+           tab_2016.pct_forestation pct_2016
+    FROM tab_1990
+    JOIN tab_2016 ON tab_1990.country_code=tab_2016.country_code)
+    
+SELECT country_name, 
+       forest_1990, 
+       forest_2016, 
+       (forest_2016-forest_1990) AS forest_area_change,
+       (100*(pct_2016-pct_1990)/pct_1990) AS pct_change, 
+       land_1990, 
+       land_2016
+FROM tab_join
+WHERE forest_1990 IS NOT NULL AND forest_2016 IS NOT NULL AND country_name!='World'
+ORDER BY pct_change DESC
+
