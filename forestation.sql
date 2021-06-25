@@ -69,4 +69,3 @@ SELECT country_code,
 FROM forestation
 WHERE year=2016 AND country_code='WLD';
 
--- Find the region with the highest relative forestation
