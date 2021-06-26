@@ -1,6 +1,5 @@
 -- Create the VIEW
 DROP VIEW IF EXISTS forestation;
-
 CREATE VIEW forestation AS
   SELECT f.country_code country_code,
          f.country_name country_name,
@@ -16,12 +15,11 @@ CREATE VIEW forestation AS
   JOIN regions r
     ON r.country_code=f.country_code;
 
-select count(*)
-from forestation;
-
+SELECT count(*)
+FROM forestation;
 
 -- PART I. GLOBAL SITUATION
--- Difference and percentage drop in forestation area from 1990 to 2016
+-- Difference and percentage drop in forestation area betweeb 1990 and 2016
 WITH t1 AS (
   SELECT *
   FROM forestation
@@ -34,8 +32,6 @@ SELECT year,
   LEAD(forest_area_sqkm) OVER (order by year)-forest_area_sqkm AS abs_diff,
   ROUND((100*(LEAD(forest_area_sqkm) OVER (order by year)-forest_area_sqkm)/forest_area_sqkm)::NUMERIC, 3) AS pct_diff
 FROM t1
-
-
 
 -- Find the country with its land area in 2016 closest to the deforestation area between 1990 and 2016
 WITH t1 AS (
@@ -69,7 +65,7 @@ SELECT country_code,
 FROM forestation
 WHERE year=2016 AND country_code='WLD';
 
--- Find the region with the highest relative forestation in 2016
+-- Find the region with the highest forestation percentage in 2016
 SELECT year,
        region,
        SUM(forest_area_sqkm) total_forestation,
@@ -81,7 +77,7 @@ HAVING year=2016
 ORDER BY forestation_pct DESC
 LIMIT 1;
 
--- Find the region with the lowest relative forestation in 2016
+-- Find the region with the lowest forestation percentage in 2016
 SELECT year,
        region,
        SUM(forest_area_sqkm) total_forestation,
@@ -103,7 +99,7 @@ SELECT country_code,
 FROM forestation
 WHERE year=1990 AND country_code='WLD';
 
--- Find the region with the highest relative forestation in 1990
+-- Find the region with the highest forestation percentage in 1990
 SELECT year,
        region,
        SUM(forest_area_sqkm) total_forestation,
@@ -115,7 +111,7 @@ HAVING year=1990
 ORDER BY forestation_pct DESC
 LIMIT 1;
 
--- Find the region with the lowest relative forestation in 1990
+-- Find the region with the lowest forestation percentage in 1990
 SELECT year,
        region,
        SUM(forest_area_sqkm) total_forestation,
@@ -127,7 +123,7 @@ HAVING year=1990
 ORDER BY forestation_pct
 LIMIT 1;
 
------Table 2.1: Percent FOrest Area by Region, 1990 & 2016
+-- Calculate Table 2.1: Percent Forest Area by Region, 1990 & 2016
 DROP VIEW IF EXISTS t1;
 CREATE VIEW t1 AS (
 SELECT year yr,
@@ -247,7 +243,7 @@ WHERE forest_1990 IS NOT NULL AND forest_2016 IS NOT NULL AND country_name!='Wor
 ORDER BY pct_change DESC
 
 -- B. Largest Concerns
---Table 3.1 Top 5 Amount Decrease in Forest Area by Country, 1990 & 2016
+-- Calculate Table 3.1 Top 5 Amount Decrease in Forest Area by Country, 1990 & 2016
 WITH tab_1990 AS (
   SELECT country_code,
          country_name, 
@@ -294,7 +290,7 @@ FROM tab_join
 WHERE forest_1990 IS NOT NULL AND forest_2016 IS NOT NULL AND country_name!='World'
 ORDER BY forest_area_change
 
---Table 3.2 Top 5 Percent Decrease in Forest Area by Country, 1990 & 2016
+-- Calculate Table 3.2 Top 5 Percent Decrease in Forest Area by Country, 1990 & 2016
 WITH tab_1990 AS (
   SELECT country_code,
          country_name, 
@@ -341,9 +337,8 @@ FROM tab_join
 WHERE forest_1990 IS NOT NULL AND forest_2016 IS NOT NULL AND country_name!='World'
 ORDER BY pct_change
 
-
---C. Quartiles
--- Table 3.3 Count of Countries Grouped by Forestation Percent Quartiles, 2016
+-- C. Quartiles
+-- Calculate Table 3.3 Count of Countries Grouped by Forestation Percent Quartiles, 2016
 WITH tab_quartile AS (
   SELECT country_name,
          pct_forestation
@@ -366,7 +361,6 @@ SELECT quartiles, count(country_name) number_of_countries
 FROM tab_quartile1
 GROUP BY 1
 ORDER BY 1
-
 
 -- List all of the countries that were in the 4th quartile (percent forest > 75%) in 2016.
 WITH tab_quartile AS (
@@ -393,8 +387,6 @@ SELECT country_name, region, ROUND(pct_forestation::NUMERIC, 2) Pct_Designated_a
 FROM tab_quartile1
 WHERE quartiles='75% - 100%'
 ORDER BY 1
-
-
 
 -- How many countries had a percent forestation higher than the United States in 2016?
 WITH tab_quartile AS (
