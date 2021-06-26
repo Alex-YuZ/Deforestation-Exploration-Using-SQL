@@ -20,6 +20,25 @@ FROM forestation;
 
 -- PART I. GLOBAL SITUATION
 -- Difference and percentage drop in forestation area betweeb 1990 and 2016
+-- Method 1: Using SELF-JOIN
+WITH t1 AS (
+  SELECT *
+  FROM forestation
+  WHERE country_code='WLD' and year in (1990, 2016)
+  ORDER BY year)
+   
+SELECT t1_a.forest_area_sqkm forestation_1990, 
+       t1_b.forest_area_sqkm forestation_2016,
+       (t1_b.forest_area_sqkm-t1_a.forest_area_sqkm) AS forest_area_change,
+       t1_a.pct_forestation pct_1990,
+       t1_b.pct_forestation pct_2016,
+       ROUND((100*(t1_b.pct_forestation-t1_a.pct_forestation)/t1_a.pct_forestation)::NUMERIC, 3) AS pct_change
+FROM t1 t1_a
+JOIN t1 t1_b ON t1_a.country_name=t1_b.country_name
+WHERE t1_a.year=1990 AND t1_b.year=2016;
+
+
+-- Method 2: Using window function
 WITH t1 AS (
   SELECT *
   FROM forestation

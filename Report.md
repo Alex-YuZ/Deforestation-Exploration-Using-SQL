@@ -6,7 +6,7 @@ The data analysis team has used SQL to bring these tables together and to query 
 
 ## 1. **GLOBAL SITUATION**
 
-According to the World Bank, the total forest area of the world was **41282694.90 km^2^** in 1990. As of 2016, the most recent year for which data was available, that number had fallen to **39958245.90 km^2^**, a loss of **1324449 km^2^** or  **3.21%**.
+According to the World Bank, the total forest area of the world was **41282694.90 km^2^** in 1990. As of 2016, the most recent year for which data was available, that number had fallen to **39958245.90 km^2^**, a loss of **1324449 km^2^** or  **3.23%**.
 
 The forest area lost over this time period is slightly more than the entire land area of **Peru** listed for the year 2016 (which is **1279999.99 km^2^**).
 
@@ -102,7 +102,7 @@ From the above analysis, we see that **Nigeria** is the only country that ranks 
 | **Quartiles** | **Number of Countries** |
 | ------------- | ----------------------- |
 | 0 - 25%       | 85                      |
-| 25% - 50%     | 73                      |
+| 25% - 50%     | 72                      |
 | 50% - 75%     | 38                      |
 | 75% - 100%    | 9                       |
 
@@ -171,6 +171,25 @@ There are **94 countries** with their percent forestation higher than that of th
  
  -- PART I. GLOBAL SITUATION
  -- Difference and percentage drop in forestation area betweeb 1990 and 2016
+ -- Method 1: Using SELF-JOIN
+ WITH t1 AS (
+   SELECT *
+   FROM forestation
+   WHERE country_code='WLD' and year in (1990, 2016)
+   ORDER BY year)
+    
+ SELECT t1_a.forest_area_sqkm forestation_1990, 
+        t1_b.forest_area_sqkm forestation_2016,
+        (t1_b.forest_area_sqkm-t1_a.forest_area_sqkm) AS forest_area_change,
+        t1_a.pct_forestation pct_1990,
+        t1_b.pct_forestation pct_2016,
+        ROUND((100*(t1_b.pct_forestation-t1_a.pct_forestation)/t1_a.pct_forestation)::NUMERIC, 3) AS pct_change
+ FROM t1 t1_a
+ JOIN t1 t1_b ON t1_a.country_name=t1_b.country_name
+ WHERE t1_a.year=1990 AND t1_b.year=2016;
+ 
+ 
+ -- Method 2: Using window function
  WITH t1 AS (
    SELECT *
    FROM forestation
@@ -184,7 +203,7 @@ There are **94 countries** with their percent forestation higher than that of th
    ROUND((100*(LEAD(forest_area_sqkm) OVER (order by year)-forest_area_sqkm)/forest_area_sqkm)::NUMERIC, 3) AS pct_diff
  FROM t1
  
- -- Find the country with its land area in 2016 closest to the deforestation area between 1990 and 2016
+ -- Find the country with its land area in 2016 closest to the world's forestation area difference between 1990 and 2016
  WITH t1 AS (
    SELECT *
    FROM forestation
